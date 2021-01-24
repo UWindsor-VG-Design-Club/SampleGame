@@ -1,5 +1,5 @@
 from pygame import *
-# from random import randint as r
+from random import randint
 
 WIDTH = 1024
 HEIGHT = 1024
@@ -20,6 +20,13 @@ enemies = sprite.Group()
 player_bullets = sprite.Group()
 enemy_bullets = sprite.Group()
 
+def create_enemies():
+    for i in range(5):
+        for j in range(11):
+            tmp = Enemy()
+            tmp.move_to(50 + tmp.rect.width * j + 20 * j, 50 + tmp.rect.height * i + 15 * i)
+            enemies.add(tmp)
+
 class Enemy(sprite.Sprite):
     def __init__(self):
         sprite.Sprite.__init__(self)
@@ -29,9 +36,6 @@ class Enemy(sprite.Sprite):
         self.counter = self.frame = 0
         
     def update(self):
-        if len(enemy_bullets.sprites()) == 0 and self.is_alive:
-            enemy_bullets.add(Bullet(self.rect.x + self.rect.width / 2 - 8, self.rect.y, False))
-
         if self.is_alive and len(sprite.spritecollide(self, player_bullets, True)) > 0:
             self.is_alive = False
             self.dead_rect = self.rect
@@ -50,6 +54,10 @@ class Enemy(sprite.Sprite):
 
     def move_to(self, x, y):
         self.rect.x, self.rect.y = x, y
+
+    def shoot(self):
+        if len(enemy_bullets.sprites()) == 0 and self.is_alive:
+            enemy_bullets.add(Bullet(self.rect.x + self.rect.width / 2 - 8, self.rect.y, False))
 
 class Player(sprite.Sprite):
     def __init__(self):
@@ -88,12 +96,7 @@ class Bullet(sprite.Sprite):
            self.kill()
 
 player.add(Player())
-
-for i in range(5):
-    for j in range(11):
-        tmp = Enemy()
-        tmp.move_to(50 + tmp.rect.width * j + 20 * j, 50 + tmp.rect.height * i + 15 * i)
-        enemies.add(tmp)
+create_enemies();
 # enemies.add(Enemy(0, 0))
 
 running = True
@@ -117,6 +120,9 @@ while running:
 
     enemies.update()
     enemy_bullets.update()
+
+    if len(enemies.sprites()) > 0:
+        enemies.sprites()[randint(0, len(enemies.sprites()) - 1)].shoot()
 
     # DRAWING TO SCREEN
     player.draw(screen)
