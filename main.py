@@ -21,16 +21,15 @@ player_bullets = sprite.Group()
 enemy_bullets = sprite.Group()
 
 class Enemy(sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self):
         sprite.Sprite.__init__(self)
         self.image = transform.rotozoom(image.load("Assets/enemies/0.png").convert_alpha(), 180, 1)
         self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = x, y
         self.is_alive = True
         self.counter = self.frame = 0
         
     def update(self):
-        if len(enemy_bullets.sprites()) == 0:
+        if len(enemy_bullets.sprites()) == 0 and self.is_alive:
             enemy_bullets.add(Bullet(self.rect.x + self.rect.width / 2 - 8, self.rect.y, False))
 
         if self.is_alive and len(sprite.spritecollide(self, player_bullets, True)) > 0:
@@ -41,14 +40,16 @@ class Enemy(sprite.Sprite):
             self.counter += 1
             self.image = explosion[self.frame]
             self.rect = self.image.get_rect()
-            self.rect.x = self.dead_rect.width / 2 - self.rect.width / 2
-            self.rect.y = self.dead_rect.height / 2 - self.rect.height / 2
+            self.rect.x = self.dead_rect.x + self.dead_rect.width / 2 - self.rect.width / 2
+            self.rect.y = self.dead_rect.y + self.dead_rect.height / 2 - self.rect.height / 2
             if self.counter > 5:
                 self.counter = 0
                 self.frame += 1
                 if self.frame >= len(explosion):
                     self.kill()
 
+    def move_to(self, x, y):
+        self.rect.x, self.rect.y = x, y
 
 class Player(sprite.Sprite):
     def __init__(self):
@@ -87,7 +88,13 @@ class Bullet(sprite.Sprite):
            self.kill()
 
 player.add(Player())
-enemies.add(Enemy(0, 0))
+
+for i in range(5):
+    for j in range(11):
+        tmp = Enemy()
+        tmp.move_to(50 + tmp.rect.width * j + 20 * j, 50 + tmp.rect.height * i + 15 * i)
+        enemies.add(tmp)
+# enemies.add(Enemy(0, 0))
 
 running = True
 while running:
@@ -101,7 +108,6 @@ while running:
     mx, my = mouse.get_pos()
     mb = mouse.get_pressed()
     kp = key.get_pressed()
-    
 
     screen.blit(background, (0, 0))
 
@@ -111,8 +117,6 @@ while running:
 
     enemies.update()
     enemy_bullets.update()
-
-
 
     # DRAWING TO SCREEN
     player.draw(screen)
